@@ -259,4 +259,109 @@ location ~* \.(jpg|jpeg|png|gif|ico)$ {
 
 ---
 
-**Final Note:** Security is an ongoing process. Layered defense, continuous monitoring, and rapid response are key.
+---
+
+## 21. WAF Integration
+**Purpose:** Add a Web Application Firewall layer directly into Nginx using ModSecurity or NAXSI.
+```nginx
+modsecurity on;
+modsecurity_rules_file /etc/nginx/modsec/main.conf;
+```
+> ModSecurity with OWASP CRS provides automatic protection against SQLi, XSS, LFI, RFI, and more.
+
+---
+
+## 22. gRPC / HTTP/2 Hardening
+**Purpose:** Secure modern protocols to avoid protocol-specific exploits.
+```nginx
+http2_max_concurrent_streams 128;
+http2_max_header_size 16k;
+http2_max_field_size 4k;
+```
+
+---
+
+## 23. Connection Limits
+**Purpose:** Prevent a single client from monopolizing connections.
+```nginx
+limit_conn_zone $binary_remote_addr zone=conn_limit_per_ip:10m;
+limit_conn conn_limit_per_ip 10;
+```
+
+---
+
+## 24. Timeout Optimization
+**Purpose:** Mitigate slowloris attacks.
+```nginx
+client_body_timeout 10s;
+client_header_timeout 10s;
+keepalive_timeout 15s;
+send_timeout 10s;
+```
+
+---
+
+## 25. Separate Error Logging for Suspicious Requests
+**Purpose:** Isolate and monitor malicious activity.
+```nginx
+error_log /var/log/nginx/suspicious.log warn;
+```
+> This file can be monitored by Fail2ban or sent to Loki for alerts.
+
+---
+
+## 26. JSON Structured Logging
+**Purpose:** Easier parsing for SIEM tools.
+```nginx
+log_format json_combined escape=json
+'{ "@timestamp": "$time_iso8601", '
+'"remote_addr": "$remote_addr", '
+'"request": "$request", '
+'"status": $status, '
+'"body_bytes_sent": $body_bytes_sent, '
+'"http_referer": "$http_referer", '
+'"http_user_agent": "$http_user_agent" }';
+
+access_log /var/log/nginx/access.json json_combined;
+```
+
+---
+
+## 27. mTLS (Mutual TLS Authentication)
+**Purpose:** Require client certificates for sensitive APIs.
+```nginx
+ssl_verify_client on;
+ssl_client_certificate /etc/nginx/ssl/ca.crt;
+```
+
+---
+
+## 28. OCSP Stapling
+**Purpose:** Speed up TLS handshakes and improve certificate validation security.
+```nginx
+ssl_stapling on;
+ssl_stapling_verify on;
+resolver 8.8.8.8;
+```
+
+---
+
+## 29. ETag and Server Header Removal
+**Purpose:** Avoid leaking server information.
+```nginx
+etag off;
+more_clear_headers 'Server';
+```
+(Requires `ngx_headers_more` module)
+
+---
+
+## 30. Zero Trust Segmentation
+**Purpose:** Restrict service-to-service communication using Nginx upstream rules + Docker network isolation.
+**Implementation:**
+- Only expose public routes in `server {}` block.
+- Use internal upstream blocks for backend services with `listen 127.0.0.1`.
+
+---
+
+**Final Note:** With these 30 security measures, Nginx is hardened against a wide range of attacks. Remember: Security is a continuous process — always monitor, update, and test.

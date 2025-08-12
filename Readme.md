@@ -365,3 +365,9 @@ more_clear_headers 'Server';
 ---
 
 **Final Note:** With these 30 security measures, Nginx is hardened against a wide range of attacks. Remember: Security is a continuous process — always monitor, update, and test.
+
+---
+
+## Credits
+
+- [Somar kesen](https://www.linkedin.com/in/somarkesen/)
